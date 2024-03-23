@@ -1,7 +1,15 @@
-import Head from "next/head";
-import Image from "next/image";
-import styles from "../styles/Home.module.css";
 
-export default function Home() {
-  return <div className={styles.container}>aaa</div>;
-}
+import MapComponent from "@components/MapComponent/MapComponent";
+import React from "react";
+import Controls from "@components/HomeControls/Controls";
+const Home = () => {
+  return (
+    <>
+      <MapComponent >
+      <Controls />
+       </MapComponent>
+    </>
+  );
+};
+
+export default Home;

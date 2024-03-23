@@ -27,9 +27,9 @@ function MapComponent({ children }) {
       layers: [
         new TileLayer({
           source: new XYZ({
-            // url: "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
+            url: "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
             // url: "https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png",
-            url: "https://cdn.lima-labs.com/{z}/{x}/{y}.png?api=demo",
+            // url: "https://cdn.lima-labs.com/{z}/{x}/{y}.png?api=demo",
           }),
         }),
         // new TileLayer({ source: new OSM() }),
