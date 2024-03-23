@@ -16,7 +16,8 @@ const CurrentPositionBtn = () => {
   function getLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition((position) => {
-        setPoint([position.coords.longitude, position.coords.latitude]);
+        console.log(position);
+        setPoint([position.coords.longitude, position.coords.latitude,position.coords.heading,position.coords.accuracy]);
       });
     } else {
       console.log("Geolocation is not supported by this browser.");
@@ -51,7 +52,9 @@ const CurrentPositionBtn = () => {
   return (
     <>
       <Button icon="pi pi-map-marker" onClick={getLocation} />
-      {/* <div>{position.join(" , ")}</div> */}
+      <div style={{ backgroundColor: "white", padding: 5 }}>
+        {position.join(" , ")}
+      </div>
     </>
   );
 };
