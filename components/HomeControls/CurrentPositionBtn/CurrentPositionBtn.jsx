@@ -14,6 +14,7 @@ const CurrentPositionBtn = () => {
   const vlRef = useRef();
   const [pervPosition, setPervPosition] = useState([]);
   const [pervAccuracy, setPervAccuracy] = useState();
+  const [pervHeading, setPervHeading] = useState();
   const point = (lon, lat) => {
     return {
       type: "Feature",
@@ -29,7 +30,7 @@ const CurrentPositionBtn = () => {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         (position) => {
-          const { accuracy, longitude, latitude } = position.coords;
+          const { accuracy, longitude, latitude, heading } = position.coords;
           if (accuracy <= accuracyThreshold) {
             if (
               pervPosition.length &&
@@ -49,6 +50,7 @@ const CurrentPositionBtn = () => {
             }
             setPervPosition([longitude, latitude]);
             setPervAccuracy(accuracy);
+            setPervHeading(heading);
             setPoint([longitude, latitude]);
             // Process valid location data
             console.log("Valid location data:", latitude, longitude);
@@ -97,6 +99,7 @@ const CurrentPositionBtn = () => {
       <div style={{ backgroundColor: "white", padding: 5 }}>
         <div>position : {pervPosition.join(" , ")}</div>
         <div>accuracy : {pervAccuracy}</div>
+        <div>heading : {pervHeading}</div>
       </div>
     </>
   );
