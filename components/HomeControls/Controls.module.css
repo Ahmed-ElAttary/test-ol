@@ -1,0 +1,21 @@
+.control {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+.right {
+  right: 10px;
+}
+.top {
+  top: 10px;
+}
+
+.bottom {
+  bottom: 10px;
+}
+.left {
+  left: 10px;
+}

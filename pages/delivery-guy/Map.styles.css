@@ -1,0 +1,12 @@
+#map {
+ width: 100vw;
+  height: 100vh;
+  /* border-radius: 12px; */
+
+}
+body {
+  margin: 0 ;
+}
+/* .ol-viewport {
+  border-radius: 12px;
+} */
