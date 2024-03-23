@@ -19,7 +19,7 @@ const CurrentPositionBtn = () => {
   if (typeof window !== "undefined") {
     window.addEventListener("deviceorientation", (e) => {
       console.log(e.alpha);
-      pervHeading(e.alpha);
+      setPervHeading(e.alpha);
     });
   }
   const point = (lon, lat) => {
