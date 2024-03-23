@@ -15,10 +15,19 @@ const CurrentPositionBtn = () => {
   const [position, setPosition] = useState([]);
   function getLocation() {
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition((position) => {
-        console.log(position);
-        setPoint([position.coords.longitude, position.coords.latitude,position.coords.heading,position.coords.accuracy]);
-      });
+      navigator.geolocation.watchPosition(
+        (position) => {
+          console.log(position);
+          setPoint([
+            position.coords.longitude,
+            position.coords.latitude,
+            position.coords.heading,
+            position.coords.accuracy,
+          ]);
+        },
+        undefined,
+        { enableHighAccuracy: true }
+      );
     } else {
       console.log("Geolocation is not supported by this browser.");
     }
