@@ -25,7 +25,7 @@ const CurrentPositionBtn = () => {
   };
   function getLocation() {
     const accuracyThreshold = 20;
-    const multiplier = 3;
+    const multiplier = 2;
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         (position) => {
