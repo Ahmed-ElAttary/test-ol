@@ -55,6 +55,9 @@ const CurrentPositionBtn = () => {
             // Add code here to update map display or perform other actions
           } else {
             console.log("Location accuracy exceeds threshold:", accuracy);
+            setPervPosition([longitude, latitude]);
+            setPervAccuracy(accuracy);
+            setPoint([longitude, latitude]);
             // Add code here to handle inaccurate location data (e.g., notify user)
           }
         }
