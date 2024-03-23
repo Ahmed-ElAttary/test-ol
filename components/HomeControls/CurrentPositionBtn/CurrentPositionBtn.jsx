@@ -15,6 +15,13 @@ const CurrentPositionBtn = () => {
   const [pervPosition, setPervPosition] = useState([]);
   const [pervAccuracy, setPervAccuracy] = useState();
   const [pervHeading, setPervHeading] = useState();
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("deviceorientation", (e) => {
+      console.log(e.alpha);
+      pervHeading(e.alpha);
+    });
+  }
   const point = (lon, lat) => {
     return {
       type: "Feature",
@@ -50,7 +57,7 @@ const CurrentPositionBtn = () => {
             }
             setPervPosition([longitude, latitude]);
             setPervAccuracy(accuracy);
-            setPervHeading(heading);
+
             setPoint([longitude, latitude]);
             // Process valid location data
             console.log("Valid location data:", latitude, longitude);
