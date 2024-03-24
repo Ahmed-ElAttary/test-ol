@@ -16,7 +16,7 @@ import Stroke from "ol/style/Stroke";
 const CurrentPositionBtn = () => {
   const { map } = useContext(MapContext);
   const vlRef = useRef();
-  const beamRef = useRef();
+
   const [pervPosition, setPervPosition] = useState([]);
   const [pervAccuracy, setPervAccuracy] = useState();
   const [pervHeading, setPervHeading] = useState();
@@ -24,10 +24,16 @@ const CurrentPositionBtn = () => {
   if (typeof window !== "undefined") {
     window.addEventListener("deviceorientation", (e) => {
       setPervHeading(e.alpha);
-
-      setBeam(e.alpha, ...pervPosition);
     });
   }
+
+  useEffect(() => {
+    if (map) setPoint(pervPosition);
+  }, [pervPosition]);
+  useEffect(() => {
+    if (map && pervHeading && pervPosition.length)
+      setBeam(pervHeading, pervPosition);
+  }, [pervHeading]);
   const point = (lon, lat) => {
     return {
       type: "Feature",
@@ -64,13 +70,11 @@ const CurrentPositionBtn = () => {
             setPervPosition([longitude, latitude]);
             setPervAccuracy(accuracy);
 
-            setPoint([longitude, latitude]);
             // Process valid location data
             console.log("Valid location data:", latitude, longitude);
             // Add code here to update map display or perform other actions
           } else {
             console.log("Location accuracy exceeds threshold:", accuracy);
-
             // Add code here to handle inaccurate location data (e.g., notify user)
           }
         }
@@ -82,46 +86,41 @@ const CurrentPositionBtn = () => {
     }
   }
 
-  const setBeam = (alpha, longitude, latitude) => {
+  const setBeam = (alpha) => {
     // Clear previous orientation vector
 
     if (alpha !== null && map) {
-      console.log("att");
-      var triangle = new Feature({
-        geometry: new Polygon([
-          [
-            [longitude, latitude],
-            [longitude + 0.0005, latitude + 0.001], // Adjust the points to form the triangle
-            [longitude - 0.0005, latitude + 0.001],
-            [longitude, latitude],
-          ],
-        ]),
-        style: new Style({
-          fill: new Fill({
-            color: "blue",
-          }),
-          stroke: new Stroke({
-            color: "blue",
-            width: 2,
-          }),
-        }),
-      });
-
-      // Rotate the triangle according to device orientation
-      triangle.getGeometry().rotate(alpha, fromLonLat([longitude, latitude]));
-      const vectorSource = new VectorSource();
-      vectorSource.addFeature(triangle);
-      // map.removeLayer(beamRef.current);
-      beamRef.current = new VectorLayer({
-        source: vectorSource,
-      });
-
-      map.addLayer(beamRef.current);
-      console.log("att22");
+      console.log(vlRef.current.source);
+      vlRef.current
+        .getSource()
+        .getFeatures()[1]
+        .getGeometry()
+        .rotate(alpha, pervPosition);
+      // .getGeometry().rotate(alpha, fromLonLat([longitude, latitude]));
     }
   };
+
   const setPoint = (position) => {
-    const iconFeature1 = new Feature(new Point(position));
+    const [longitude, latitude] = position;
+    const beam = new Feature({
+      geometry: new Polygon([
+        [
+          [longitude, latitude],
+          [longitude + 0.0005, latitude + 0.001],
+          [longitude - 0.0005, latitude + 0.001],
+          [longitude, latitude],
+        ],
+      ]),
+      style: new Style({
+        fill: new Fill({
+          color: "blue",
+        }),
+        stroke: new Stroke({
+          color: "blue",
+          width: 2,
+        }),
+      }),
+    });
     const iconFeature = new Feature(new Point(position));
     const iconStyle = new Style({
       image: new Icon({
@@ -134,14 +133,16 @@ const CurrentPositionBtn = () => {
     iconFeature.setStyle(iconStyle);
 
     const vectorSource = new VectorSource({
-      features: [iconFeature, iconFeature1],
+      features: [iconFeature, beam],
     });
 
     map.getView().fit(vectorSource.getExtent(), { maxZoom: 20 });
     map.removeLayer(vlRef.current);
-    vlRef.current = new VectorLayer({
+    const vl = new VectorLayer({
       source: vectorSource,
     });
+    vlRef.current = vl;
+    // vl.getSource().getFeatures()[1].getGeometry().rotate;
     map.addLayer(vlRef.current);
   };
 
@@ -151,7 +152,7 @@ const CurrentPositionBtn = () => {
       <div style={{ backgroundColor: "white", padding: 5 }}>
         <div>position : {pervPosition.join(" , ")}</div>
         <div>accuracy : {pervAccuracy}</div>
-        <div>heading : {pervHeading}</div>
+        {/* <div>heading : {pervHeading}</div> */}
       </div>
     </>
   );

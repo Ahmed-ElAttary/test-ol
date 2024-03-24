@@ -3,91 +3,141 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OpenLayers App</title>
-    <script src="https://cdn.jsdelivr.net/npm/ol@v9.1.0/dist/ol.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/ol@v9.1.0/ol.css"
-    />
+    <title>Simple Leaflet Map</title>
+    <!-- Include Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <!-- Include Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
     <style>
+      body {
+        margin: 0;
+      }
       #map {
-        height: 100vh;
+        /* Specify a height for your map container */
+        height: 100dvh;
+      }
+      .custom-control-button {
+        background-color: white;
+        border: 2px solid #ff0000;
+        color: #ff0707;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 35px;
+        /* padding: 10px 20px; */
+        cursor: pointer;
+        border-radius: 5px;
       }
     </style>
   </head>
   <body>
-    <div id="map" class="map"></div>
+    <div id="map"></div>
 
     <script>
-      var map = new ol.Map({
-        target: "map",
-        layers: [
-          new ol.layer.Tile({
-            source: new ol.source.OSM(),
-          }),
-        ],
-        view: new ol.View({
-          center: ol.proj.fromLonLat([0, 0]),
-          zoom: 2,
-        }),
-      });
+      // Initialize the map
 
-      var vectorSource = new ol.source.Vector();
-      var vectorLayer = new ol.layer.Vector({
-        source: vectorSource,
-      });
-      map.addLayer(vectorLayer);
+      let currentCoords = [30, 31];
+      var map = L.map("map").setView(currentCoords, 18); // Set the initial map center and zoom level
 
-      navigator.geolocation.getCurrentPosition(function (position) {
-        var coords = ol.proj.fromLonLat([
-          position.coords.longitude,
-          position.coords.latitude,
-        ]);
-        var marker = new ol.Overlay({
-          position: coords,
-          positioning: "center-center",
-          element: document.createElement("div"),
-          stopEvent: false,
+      // Add a tile layer to the map (OpenStreetMap as an example)
+      L.tileLayer("http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}", {
+        attribution:
+          'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      // Add a marker to the map
+
+      var circle = L.circle(currentCoords, {
+        color: "#12b2fc",
+        fillColor: "#12b2fc",
+        fillOpacity: 1,
+        radius: 7, // Radius in meters
+      }).addTo(map);
+      // Add the triangle beam to the map
+      var triangleCoords = [
+        currentCoords, // Point 1
+        [currentCoords[0] + 0.0008, currentCoords[1] + 0.0005], // Point 2
+        [currentCoords[0] + 0.0008, currentCoords[1] - 0.0005], // Point 3
+      ];
+      var triangle = L.polygon(triangleCoords, {
+        color: "#03adfc",
+        fillColor: "#bce3f5",
+        fillOpacity: 0.4,
+        weight: 1,
+      }).addTo(map);
+
+      var CustomControl = L.Control.extend({
+        onAdd: function (map) {
+          var button = L.DomUtil.create("div", "custom-control-button");
+          button.innerHTML = "🎯";
+          button.onclick = function () {
+            getLocation();
+          };
+          return button;
+        },
+        onRemove: function (map) {},
+      });
+      new CustomControl({ position: "topright" }).addTo(map);
+
+      function getLocation() {
+        const accuracyThreshold = 20;
+        const multiplier = 2;
+        if (navigator.geolocation) {
+          navigator.geolocation.watchPosition((position) => {
+            const { accuracy, longitude, latitude } = position.coords;
+            if (accuracy <= accuracyThreshold) {
+              if (
+                currentCoords.length &&
+                turf.distance(
+                  point(currentCoords[1], currentCoords[0]),
+                  point(longitude, latitude),
+                  { units: "meters" }
+                ) >
+                  accuracy * multiplier
+              ) {
+                console.log(
+                  "Discarding outlier location data:",
+                  latitude,
+                  longitude
+                );
+                return;
+              }
+              currentCoords = [latitude, longitude];
+              map.setView([latitude, longitude]);
+              circle.setLatLng([latitude, longitude]);
+              triangle.setLatLngs(
+                [latitude, longitude],
+                [latitude + 0.0008, longitude + 0.0005],
+                [latitude + 0.0008, longitude - 0.0005]
+              );
+              console.log("Valid location data:", latitude, longitude);
+            } else {
+              console.log("Location accuracy exceeds threshold:", accuracy);
+            }
+          });
+        } else {
+          console.log("Geolocation is not supported by this browser.");
+        }
+      }
+
+      function rotateTriangle(degrees) {
+        var angle = (degrees * Math.PI) / 180; // Convert degrees to radians
+        var center = triangle.getBounds().getCenter(); // Get the center of the triangle
+        var rotatedCoords = triangleCoords.map(function (coord) {
+          var x = coord[0] - center.lat;
+          var y = coord[1] - center.lng;
+          var newX = x * Math.cos(angle) - y * Math.sin(angle);
+          var newY = x * Math.sin(angle) + y * Math.cos(angle);
+          return [newX + center.lat, newY + center.lng];
         });
-        map.addOverlay(marker);
-        marker.getElement().innerHTML =
-          '<img src="https://openlayers.org/en/latest/examples/data/icon.png" width="32">';
-
-        map.getView().setCenter(coords);
-        map.getView().setZoom(14);
+        triangle.setLatLngs(rotatedCoords); // Set the rotated coordinates to the triangle
+      }
+      window.addEventListener("deviceorientation", (e) => {
+        console.log("heading", e.alpha);
+        rotateTriangle(e.alpha);
       });
-
-      //   window.addEventListener("deviceorientation", function (event) {
-      // var alpha = event.alpha;
-      // rotation around z-axis
-      var alpha = 90;
-      // Clear previous orientation vector
-          vectorSource.clear();
-
-            if (alpha !== null) {
-                var triangle = new ol.Feature({
-                    geometry: new ol.geom.Polygon([[
-                        ol.proj.fromLonLat([0, 0]),
-                        ol.proj.fromLonLat([0.0005, 0.001]), // Adjust the points to form the triangle
-                        ol.proj.fromLonLat([-0.0005, 0.001]),
-                        ol.proj.fromLonLat([0, 0])
-                    ]]),
-                    style: new ol.style.Style({
-                        fill: new ol.style.Fill({
-                            color: 'blue'
-                        }),
-                        stroke: new ol.style.Stroke({
-                            color: 'blue',
-                            width: 2
-                        })
-                    })
-                });
-
-                // Rotate the triangle according to device orientation
-                triangle.getGeometry().rotate(alpha, ol.proj.fromLonLat([0, 0]));
-
-                vectorSource.addFeature(triangle);
-            }      //   });
     </script>
   </body>
 </html>
