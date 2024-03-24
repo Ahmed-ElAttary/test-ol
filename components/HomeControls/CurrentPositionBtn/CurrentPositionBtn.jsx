@@ -23,9 +23,9 @@ const CurrentPositionBtn = () => {
 
   if (typeof window !== "undefined") {
     window.addEventListener("deviceorientation", (e) => {
-  
-      setBeam(e.alpha);
       setPervHeading(e.alpha);
+
+      setBeam(e.alpha, ...pervPosition);
     });
   }
   const point = (lon, lat) => {
@@ -82,17 +82,18 @@ const CurrentPositionBtn = () => {
     }
   }
 
-  const setBeam = (alpha) => {
+  const setBeam = (alpha, longitude, latitude) => {
     // Clear previous orientation vector
 
     if (alpha !== null && map) {
+      console.log("att");
       var triangle = new Feature({
         geometry: new Polygon([
           [
-            fromLonLat(pervPosition),
-            fromLonLat([pervPosition[0] + 0.0005, pervPosition[1] + 0.001]), // Adjust the points to form the triangle
-            fromLonLat([pervPosition[0] - 0.0005, pervPosition[1] + 0.001]),
-            fromLonLat(pervPosition),
+            [longitude, latitude],
+            [longitude + 0.0005, latitude + 0.001], // Adjust the points to form the triangle
+            [longitude - 0.0005, latitude + 0.001],
+            [longitude, latitude],
           ],
         ]),
         style: new Style({
@@ -107,43 +108,43 @@ const CurrentPositionBtn = () => {
       });
 
       // Rotate the triangle according to device orientation
-      triangle.getGeometry().rotate(alpha, fromLonLat(pervPosition));
-      const vectorSource = new VectorSource({
-        features: [triangle],
-      });
-      map.removeLayer(beamRef.current);
+      triangle.getGeometry().rotate(alpha, fromLonLat([longitude, latitude]));
+      const vectorSource = new VectorSource();
+      vectorSource.addFeature(triangle);
+      // map.removeLayer(beamRef.current);
       beamRef.current = new VectorLayer({
         source: vectorSource,
       });
 
       map.addLayer(beamRef.current);
+      console.log("att22");
     }
   };
-    const setPoint = (position) => {
-      const iconFeature1 = new Feature(new Point(position));
-      const iconFeature = new Feature(new Point(position));
-      const iconStyle = new Style({
-        image: new Icon({
-          anchor: [0.5, 1],
-          src: "map-marker-icon.png",
-          scale: 0.2,
-        }),
-      });
+  const setPoint = (position) => {
+    const iconFeature1 = new Feature(new Point(position));
+    const iconFeature = new Feature(new Point(position));
+    const iconStyle = new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: "map-marker-icon.png",
+        scale: 0.2,
+      }),
+    });
 
-      iconFeature.setStyle(iconStyle);
+    iconFeature.setStyle(iconStyle);
 
-      const vectorSource = new VectorSource({
-        features: [iconFeature, iconFeature1],
-      });
+    const vectorSource = new VectorSource({
+      features: [iconFeature, iconFeature1],
+    });
 
-      map.getView().fit(vectorSource.getExtent(), { maxZoom: 20 });
-      map.removeLayer(vlRef.current);
-      vlRef.current = new VectorLayer({
-        source: vectorSource,
-      });
-      map.addLayer(vlRef.current);
-    };
- 
+    map.getView().fit(vectorSource.getExtent(), { maxZoom: 20 });
+    map.removeLayer(vlRef.current);
+    vlRef.current = new VectorLayer({
+      source: vectorSource,
+    });
+    map.addLayer(vlRef.current);
+  };
+
   return (
     <>
       <Button icon="pi pi-map-marker" onClick={getLocation} />
