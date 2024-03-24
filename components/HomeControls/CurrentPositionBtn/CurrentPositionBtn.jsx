@@ -23,6 +23,7 @@ const CurrentPositionBtn = () => {
 
   if (typeof window !== "undefined") {
     window.addEventListener("deviceorientation", (e) => {
+  
       setBeam(e.alpha);
       setPervHeading(e.alpha);
     });
@@ -91,7 +92,7 @@ const CurrentPositionBtn = () => {
             fromLonLat(pervPosition),
             fromLonLat([pervPosition[0] + 0.0005, pervPosition[1] + 0.001]), // Adjust the points to form the triangle
             fromLonLat([pervPosition[0] - 0.0005, pervPosition[1] + 0.001]),
-            fromLonLat(beamRef.current),
+            fromLonLat(pervPosition),
           ],
         ]),
         style: new Style({
