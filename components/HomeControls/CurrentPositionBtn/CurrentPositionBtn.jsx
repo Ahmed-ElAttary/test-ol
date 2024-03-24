@@ -84,8 +84,7 @@ const CurrentPositionBtn = () => {
   const setBeam = (alpha) => {
     // Clear previous orientation vector
 
-    map.removeLayer(beamRef.current);
-    if (alpha !== null) {
+    if (alpha !== null && map) {
       var triangle = new Feature({
         geometry: new Polygon([
           [
@@ -111,6 +110,7 @@ const CurrentPositionBtn = () => {
       const vectorSource = new VectorSource({
         features: [triangle],
       });
+      map.removeLayer(beamRef.current);
       beamRef.current = new VectorLayer({
         source: vectorSource,
       });
