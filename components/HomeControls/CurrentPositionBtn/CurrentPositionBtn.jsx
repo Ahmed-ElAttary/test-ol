@@ -83,15 +83,15 @@ const CurrentPositionBtn = () => {
 
   const setBeam = (alpha) => {
     // Clear previous orientation vector
-    beamRef.current.clear();
 
+    map.removeLayer(beamRef.current);
     if (alpha !== null) {
       var triangle = new Feature({
         geometry: new Polygon([
           [
             fromLonLat(pervPosition),
-            fromLonLat([0.0005, 0.001]), // Adjust the points to form the triangle
-            fromLonLat([-0.0005, 0.001]),
+            fromLonLat([pervPosition[0] + 0.0005, pervPosition[1] + 0.001]), // Adjust the points to form the triangle
+            fromLonLat([pervPosition[0] - 0.0005, pervPosition[1] + 0.001]),
             fromLonLat(beamRef.current),
           ],
         ]),
@@ -108,8 +108,12 @@ const CurrentPositionBtn = () => {
 
       // Rotate the triangle according to device orientation
       triangle.getGeometry().rotate(alpha, fromLonLat(pervPosition));
-
-      beamRef.current.addFeature(triangle);
+      const vectorSource = new VectorSource({
+        features: [triangle],
+      });
+      beamRef.current = new VectorLayer({
+        source: vectorSource,
+      });
 
       map.addLayer(beamRef.current);
     }
