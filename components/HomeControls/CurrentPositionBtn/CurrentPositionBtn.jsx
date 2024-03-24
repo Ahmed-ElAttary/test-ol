@@ -7,18 +7,23 @@ import MapContext from "@components/MapComponent/MapContext";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import Style from "ol/style/Style";
+import Fill from "ol/style/Fill";
 import Icon from "ol/style/Icon";
 import distance from "@turf/distance";
+import { Polygon } from "ol/geom";
+import { fromLonLat } from "ol/proj";
+import Stroke from "ol/style/Stroke";
 const CurrentPositionBtn = () => {
   const { map } = useContext(MapContext);
   const vlRef = useRef();
+  const beamRef = useRef();
   const [pervPosition, setPervPosition] = useState([]);
   const [pervAccuracy, setPervAccuracy] = useState();
   const [pervHeading, setPervHeading] = useState();
 
   if (typeof window !== "undefined") {
     window.addEventListener("deviceorientation", (e) => {
-      console.log(e.alpha);
+      setBeam(e.alpha);
       setPervHeading(e.alpha);
     });
   }
@@ -75,31 +80,64 @@ const CurrentPositionBtn = () => {
       console.log("Geolocation is not supported by this browser.");
     }
   }
-  const setPoint = (position) => {
-    const iconFeature1 = new Feature(new Point(position));
-    const iconFeature = new Feature(new Point(position));
-    const iconStyle = new Style({
-      image: new Icon({
-        anchor: [0.5, 1],
-        src: "map-marker-icon.png",
-        scale: 0.2,
-      }),
-    });
 
-    iconFeature.setStyle(iconStyle);
+  const setBeam = (alpha) => {
+    // Clear previous orientation vector
+    beamRef.current.clear();
 
-    const vectorSource = new VectorSource({
-      features: [iconFeature, iconFeature1],
-    });
+    if (alpha !== null) {
+      var triangle = new Feature({
+        geometry: new Polygon([
+          [
+            fromLonLat(pervPosition),
+            fromLonLat([0.0005, 0.001]), // Adjust the points to form the triangle
+            fromLonLat([-0.0005, 0.001]),
+            fromLonLat(beamRef.current),
+          ],
+        ]),
+        style: new Style({
+          fill: new Fill({
+            color: "blue",
+          }),
+          stroke: new Stroke({
+            color: "blue",
+            width: 2,
+          }),
+        }),
+      });
 
-    map.getView().fit(vectorSource.getExtent(), { maxZoom: 20 });
-    map.removeLayer(vlRef.current);
-    vlRef.current = new VectorLayer({
-      source: vectorSource,
-    });
-    map.addLayer(vlRef.current);
+      // Rotate the triangle according to device orientation
+      triangle.getGeometry().rotate(alpha, fromLonLat(pervPosition));
+
+      beamRef.current.addFeature(triangle);
+
+      map.addLayer(beamRef.current);
+    }
+    const setPoint = (position) => {
+      const iconFeature1 = new Feature(new Point(position));
+      const iconFeature = new Feature(new Point(position));
+      const iconStyle = new Style({
+        image: new Icon({
+          anchor: [0.5, 1],
+          src: "map-marker-icon.png",
+          scale: 0.2,
+        }),
+      });
+
+      iconFeature.setStyle(iconStyle);
+
+      const vectorSource = new VectorSource({
+        features: [iconFeature, iconFeature1],
+      });
+
+      map.getView().fit(vectorSource.getExtent(), { maxZoom: 20 });
+      map.removeLayer(vlRef.current);
+      vlRef.current = new VectorLayer({
+        source: vectorSource,
+      });
+      map.addLayer(vlRef.current);
+    };
   };
-
   return (
     <>
       <Button icon="pi pi-map-marker" onClick={getLocation} />

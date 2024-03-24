@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenLayers App</title>
+    <script src="https://cdn.jsdelivr.net/npm/ol@v9.1.0/dist/ol.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ol@v9.1.0/ol.css"
+    />
+    <style>
+      #map {
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+
+    <script>
+      var map = new ol.Map({
+        target: "map",
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.OSM(),
+          }),
+        ],
+        view: new ol.View({
+          center: ol.proj.fromLonLat([0, 0]),
+          zoom: 2,
+        }),
+      });
+
+      var vectorSource = new ol.source.Vector();
+      var vectorLayer = new ol.layer.Vector({
+        source: vectorSource,
+      });
+      map.addLayer(vectorLayer);
+
+      navigator.geolocation.getCurrentPosition(function (position) {
+        var coords = ol.proj.fromLonLat([
+          position.coords.longitude,
+          position.coords.latitude,
+        ]);
+        var marker = new ol.Overlay({
+          position: coords,
+          positioning: "center-center",
+          element: document.createElement("div"),
+          stopEvent: false,
+        });
+        map.addOverlay(marker);
+        marker.getElement().innerHTML =
+          '<img src="https://openlayers.org/en/latest/examples/data/icon.png" width="32">';
+
+        map.getView().setCenter(coords);
+        map.getView().setZoom(14);
+      });
+
+      //   window.addEventListener("deviceorientation", function (event) {
+      // var alpha = event.alpha;
+      // rotation around z-axis
+      var alpha = 90;
+      // Clear previous orientation vector
+          vectorSource.clear();
+
+            if (alpha !== null) {
+                var triangle = new ol.Feature({
+                    geometry: new ol.geom.Polygon([[
+                        ol.proj.fromLonLat([0, 0]),
+                        ol.proj.fromLonLat([0.0005, 0.001]), // Adjust the points to form the triangle
+                        ol.proj.fromLonLat([-0.0005, 0.001]),
+                        ol.proj.fromLonLat([0, 0])
+                    ]]),
+                    style: new ol.style.Style({
+                        fill: new ol.style.Fill({
+                            color: 'blue'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: 'blue',
+                            width: 2
+                        })
+                    })
+                });
+
+                // Rotate the triangle according to device orientation
+                triangle.getGeometry().rotate(alpha, ol.proj.fromLonLat([0, 0]));
+
+                vectorSource.addFeature(triangle);
+            }      //   });
+    </script>
+  </body>
+</html>
