@@ -118,6 +118,7 @@ const CurrentPositionBtn = () => {
 
       map.addLayer(beamRef.current);
     }
+  };
     const setPoint = (position) => {
       const iconFeature1 = new Feature(new Point(position));
       const iconFeature = new Feature(new Point(position));
@@ -142,7 +143,7 @@ const CurrentPositionBtn = () => {
       });
       map.addLayer(vlRef.current);
     };
-  };
+ 
   return (
     <>
       <Button icon="pi pi-map-marker" onClick={getLocation} />
