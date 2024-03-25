@@ -19,14 +19,14 @@ const CurrentPositionBtn = () => {
 
   const [pervPosition, setPervPosition] = useState([]);
   const [pervAccuracy, setPervAccuracy] = useState();
-  const [pervHeading, setPervHeading] = useState();
+  const [pervHeading, setPervHeading] = useState(10.5656645564);
 
-  if (typeof window !== "undefined") {
-    window.addEventListener("deviceorientation", (e) => {
-      setPervHeading(e.alpha);
-      console.log(e.alpha);
-    });
-  }
+  // if (typeof window !== "undefined") {
+  //   window.addEventListener("deviceorientation", (e) => {
+  //     setPervHeading(e.alpha);
+  //     console.log(e.alpha);
+  //   });
+  // }
 
   useEffect(() => {
     if (map) setPoint(pervPosition);
@@ -154,8 +154,8 @@ const CurrentPositionBtn = () => {
       <Button icon="pi pi-map-marker" onClick={getLocation} />
       <div style={{ backgroundColor: "white", padding: 5 }}>
         <div>position : {pervPosition.join(" , ")}</div>
-        <div>accuracy : {pervAccuracy}</div>
-        {/* <div>heading : {pervHeading}</div> */}
+        <div>accuracy : {pervAccuracy && pervAccuracy / 2}</div>
+        <div>heading : {pervHeading.toFixed(2)}</div>
       </div>
     </>
   );
