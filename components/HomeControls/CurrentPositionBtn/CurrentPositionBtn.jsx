@@ -21,12 +21,12 @@ const CurrentPositionBtn = () => {
   const [pervAccuracy, setPervAccuracy] = useState();
   const [pervHeading, setPervHeading] = useState(10.5656645564);
 
-  // if (typeof window !== "undefined") {
-  //   window.addEventListener("deviceorientation", (e) => {
-  //     setPervHeading(e.alpha);
-  //     console.log(e.alpha);
-  //   });
-  // }
+  if (typeof window !== "undefined") {
+    window.addEventListener("deviceorientation", (e) => {
+      setPervHeading(e.alpha);
+      console.log(e.alpha);
+    });
+  }
 
   useEffect(() => {
     if (map) setPoint(pervPosition);
