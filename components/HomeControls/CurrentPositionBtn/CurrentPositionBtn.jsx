@@ -24,6 +24,7 @@ const CurrentPositionBtn = () => {
   if (typeof window !== "undefined") {
     window.addEventListener("deviceorientation", (e) => {
       setPervHeading(e.alpha);
+      console.log(e.alpha);
     });
   }
 
@@ -44,7 +45,7 @@ const CurrentPositionBtn = () => {
     };
   };
   function getLocation() {
-    const accuracyThreshold = 20;
+    const accuracyThreshold = 100;
     const multiplier = 2;
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
@@ -76,6 +77,8 @@ const CurrentPositionBtn = () => {
           } else {
             console.log("Location accuracy exceeds threshold:", accuracy);
             // Add code here to handle inaccurate location data (e.g., notify user)
+            setPervPosition([longitude, latitude]);
+            setPervAccuracy(accuracy);
           }
         }
         // undefined,
