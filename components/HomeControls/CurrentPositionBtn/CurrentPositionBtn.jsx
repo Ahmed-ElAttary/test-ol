@@ -19,21 +19,21 @@ const CurrentPositionBtn = () => {
 
   const [pervPosition, setPervPosition] = useState([]);
   const [pervAccuracy, setPervAccuracy] = useState();
-  const [pervHeading, setPervHeading] = useState(10.5656645564);
+  // const [pervHeading, setPervHeading] = useState(10.5656645564);
 
-  if (typeof window !== "undefined") {
-    window.addEventListener("deviceorientation", (e) => {
-      setPervHeading(e.alpha);
-    });
-  }
+  // if (typeof window !== "undefined") {
+  //   window.addEventListener("deviceorientation", (e) => {
+  //     setPervHeading(e.alpha);
+  //   });
+  // }
 
   useEffect(() => {
     if (map) setPoint(pervPosition);
   }, [pervPosition]);
-  useEffect(() => {
-    if (map && pervHeading && pervPosition.length)
-      setBeam(pervHeading, pervPosition);
-  }, [pervHeading, pervPosition]);
+  // useEffect(() => {
+  //   if (map && pervHeading && pervPosition.length)
+  //     setBeam(pervHeading, pervPosition);
+  // }, [pervHeading, pervPosition]);
   const point = (lon, lat) => {
     return {
       type: "Feature",
@@ -104,25 +104,25 @@ const CurrentPositionBtn = () => {
 
   const setPoint = (position) => {
     const [longitude, latitude] = position;
-    const beam = new Feature({
-      geometry: new Polygon([
-        [
-          [longitude, latitude],
-          [longitude + 0.0005, latitude + 0.001],
-          [longitude - 0.0005, latitude + 0.001],
-          [longitude, latitude],
-        ],
-      ]),
-      style: new Style({
-        fill: new Fill({
-          color: "blue",
-        }),
-        stroke: new Stroke({
-          color: "blue",
-          width: 2,
-        }),
-      }),
-    });
+    // const beam = new Feature({
+    //   geometry: new Polygon([
+    //     [
+    //       [longitude, latitude],
+    //       [longitude + 0.0005, latitude + 0.001],
+    //       [longitude - 0.0005, latitude + 0.001],
+    //       [longitude, latitude],
+    //     ],
+    //   ]),
+    //   style: new Style({
+    //     fill: new Fill({
+    //       color: "blue",
+    //     }),
+    //     stroke: new Stroke({
+    //       color: "blue",
+    //       width: 2,
+    //     }),
+    //   }),
+    // });
     const iconFeature = new Feature(new Point(position));
     const iconStyle = new Style({
       image: new Icon({
@@ -135,7 +135,10 @@ const CurrentPositionBtn = () => {
     iconFeature.setStyle(iconStyle);
 
     const vectorSource = new VectorSource({
-      features: [iconFeature, beam],
+      features: [iconFeature
+        // , beam
+      
+      ],
     });
 
     map.getView().fit(vectorSource.getExtent(), { maxZoom: 20 });
@@ -154,7 +157,7 @@ const CurrentPositionBtn = () => {
       <div style={{ backgroundColor: "white", padding: 5 }}>
         <div>position : {pervPosition.join(" , ")}</div>
         <div>accuracy : {pervAccuracy && pervAccuracy / 2}</div>
-        <div>heading : {pervHeading && pervHeading.toFixed(2)}</div>
+        {/* <div>heading : {pervHeading && pervHeading.toFixed(2)}</div> */}
       </div>
     </>
   );
