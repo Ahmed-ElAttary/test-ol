@@ -98,7 +98,7 @@ const CurrentPositionBtn = () => {
         .getSource()
         .getFeatures()[1]
         .getGeometry()
-        .rotate(alpha, pervPosition);
+        .rotate((alpha * Math.PI) / 180, pervPosition);
       // .getGeometry().rotate(alpha, fromLonLat([longitude, latitude]));
     }
   };
