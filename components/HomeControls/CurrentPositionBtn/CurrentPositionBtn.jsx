@@ -154,7 +154,7 @@ const CurrentPositionBtn = () => {
       <div style={{ backgroundColor: "white", padding: 5 }}>
         <div>position : {pervPosition.join(" , ")}</div>
         <div>accuracy : {pervAccuracy && pervAccuracy / 2}</div>
-        <div>heading : {pervHeading.toFixed(2)}</div>
+        <div>heading : {pervHeading && pervHeading.toFixed(2)}</div>
       </div>
     </>
   );
