@@ -113,7 +113,7 @@ const CurrentPositionBtn = () => {
           [longitude - 0.0005, latitude + 0.001],
           [longitude, latitude],
         ],
-      ]),
+      ]).rotate((pervHeading * Math.PI) / 180, [longitude, latitude]),
       style: new Style({
         fill: new Fill({
           color: "blue",
