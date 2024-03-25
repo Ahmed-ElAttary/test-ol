@@ -23,7 +23,7 @@ const CurrentPositionBtn = () => {
 
   if (typeof window !== "undefined") {
     window.addEventListener("deviceorientation", (e) => {
-      setPervHeading(e.webkitCompassHeading);
+      setPervHeading(e.alpha);
     });
   }
 
