@@ -7,33 +7,70 @@ import MapContext from "@components/MapComponent/MapContext";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import Style from "ol/style/Style";
-import Fill from "ol/style/Fill";
 import Icon from "ol/style/Icon";
 import distance from "@turf/distance";
-import { Polygon } from "ol/geom";
-import { fromLonLat } from "ol/proj";
-import Stroke from "ol/style/Stroke";
+import { set } from "ol/transform";
+
 const CurrentPositionBtn = () => {
   const { map } = useContext(MapContext);
   const vlRef = useRef();
 
-  const [pervPosition, setPervPosition] = useState([]);
-  const [pervAccuracy, setPervAccuracy] = useState();
-  // const [pervHeading, setPervHeading] = useState(10.5656645564);
+  const [pervPosition, setPervPosition] = useState();
 
-  // if (typeof window !== "undefined") {
-  //   window.addEventListener("deviceorientation", (e) => {
-  //     setPervHeading(e.alpha);
-  //   });
-  // }
+  const [currentPosition, setCurrentPosition] = useState();
+  const [newPosition, setNewPosition] = useState();
+  const [accuracy, setAccuracy] = useState();
 
   useEffect(() => {
-    if (map) setPoint(pervPosition);
-  }, [pervPosition]);
-  // useEffect(() => {
-  //   if (map && pervHeading && pervPosition.length)
-  //     setBeam(pervHeading, pervPosition);
-  // }, [pervHeading, pervPosition]);
+    if (currentPosition) setPoint();
+  }, [currentPosition]);
+  useEffect(() => {
+    if (newPosition) {
+      if (pervPosition) {
+        const interval = setInterval(() => {
+          const longitudeDiff = newPosition[0] - pervPosition[0];
+          const latitudeDiff = newPosition[1] - pervPosition[1];
+          if (newPosition[0] > currentPosition[0]) {
+            setCurrentPosition([
+              pervPosition[0] + longitudeDiff / 100,
+              pervPosition[1] + latitudeDiff / 100,
+            ]);
+          }
+          if (newPosition[0] == currentPosition[0]) clearInterval(interval);
+        }, 10);
+      } else {
+        setCurrentPosition(newPosition);
+      }
+      setPervPosition(newPosition);
+    }
+  }, [newPosition]);
+
+  useEffect(() => {
+    if (map) {
+      const iconFeature = new Feature(new Point([30, 30]));
+      const iconStyle = new Style({
+        image: new Icon({
+          anchor: [0.5, 1],
+          src: "map-marker-icon.png",
+          scale: 0.2,
+        }),
+      });
+
+      iconFeature.setStyle(iconStyle);
+
+      const vectorSource = new VectorSource({
+        features: [iconFeature],
+      });
+
+      map.removeLayer(vlRef.current);
+      const vl = new VectorLayer({
+        source: vectorSource,
+      });
+      vlRef.current = vl;
+      // console.log(vl.getSource().getFeatures()[0].getGeometry().getCoordinates());
+      map.addLayer(vlRef.current);
+    }
+  }, [map]);
   const point = (lon, lat) => {
     return {
       type: "Feature",
@@ -47,12 +84,12 @@ const CurrentPositionBtn = () => {
     const accuracyThreshold = 100;
     const multiplier = 2;
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
+      navigator.geolocation.getCurrentPosition(
         (position) => {
           const { accuracy, longitude, latitude, heading } = position.coords;
           if (accuracy <= accuracyThreshold) {
             if (
-              pervPosition.length &&
+              pervPosition &&
               distance(
                 point(pervPosition[0], pervPosition[1]),
                 point(longitude, latitude),
@@ -65,98 +102,49 @@ const CurrentPositionBtn = () => {
                 latitude,
                 longitude
               );
-              return; // Skip this data point
+              return;
             }
-            setPervPosition([longitude, latitude]);
-            setPervAccuracy(accuracy);
+            setNewPosition([longitude, latitude]);
+            setAccuracy(accuracy);
 
-            // Process valid location data
             console.log("Valid location data:", latitude, longitude);
-            // Add code here to update map display or perform other actions
           } else {
             console.log("Location accuracy exceeds threshold:", accuracy);
-            // Add code here to handle inaccurate location data (e.g., notify user)
-            setPervPosition([longitude, latitude]);
-            setPervAccuracy(accuracy);
+
+            setNewPosition([longitude, latitude]);
+            setAccuracy(accuracy);
           }
+        },
+        undefined,
+        {
+          timeout: 1000,
+          maximumAge: 1000,
+          // enableHighAccuracy: true
         }
-        // undefined,
-        // { enableHighAccuracy: true }
       );
     } else {
       console.log("Geolocation is not supported by this browser.");
     }
   }
 
-  const setBeam = (alpha) => {
-    // Clear previous orientation vector
-
-    if (alpha !== null && map) {
-      console.log(vlRef.current.source);
-      vlRef.current
-        .getSource()
-        .getFeatures()[1]
-        .getGeometry()
-        .rotate((alpha * Math.PI) / 180, pervPosition);
-      // .getGeometry().rotate(alpha, fromLonLat([longitude, latitude]));
-    }
-  };
-
-  const setPoint = (position) => {
-    const [longitude, latitude] = position;
-    // const beam = new Feature({
-    //   geometry: new Polygon([
-    //     [
-    //       [longitude, latitude],
-    //       [longitude + 0.0005, latitude + 0.001],
-    //       [longitude - 0.0005, latitude + 0.001],
-    //       [longitude, latitude],
-    //     ],
-    //   ]),
-    //   style: new Style({
-    //     fill: new Fill({
-    //       color: "blue",
-    //     }),
-    //     stroke: new Stroke({
-    //       color: "blue",
-    //       width: 2,
-    //     }),
-    //   }),
-    // });
-    const iconFeature = new Feature(new Point(position));
-    const iconStyle = new Style({
-      image: new Icon({
-        anchor: [0.5, 1],
-        src: "map-marker-icon.png",
-        scale: 0.2,
-      }),
-    });
-
-    iconFeature.setStyle(iconStyle);
-
-    const vectorSource = new VectorSource({
-      features: [iconFeature
-        // , beam
-      
-      ],
-    });
-
-    map.getView().fit(vectorSource.getExtent(), { maxZoom: 20 });
-    map.removeLayer(vlRef.current);
-    const vl = new VectorLayer({
-      source: vectorSource,
-    });
-    vlRef.current = vl;
-    // vl.getSource().getFeatures()[1].getGeometry().rotate;
-    map.addLayer(vlRef.current);
+  const setPoint = () => {
+    vlRef.current
+      .getSource()
+      .getFeatures()[0]
+      .getGeometry()
+      .setCoordinates(currentPosition);
+    map.getView().fit(vlRef.current.getSource().getExtent(), { maxZoom: 20 });
   };
 
   return (
     <>
-      <Button icon="pi pi-map-marker" onClick={getLocation} />
+      <Button
+        icon="pi pi-map-marker"
+        onClick={() => setInterval(getLocation, 1000)}
+      />
       <div style={{ backgroundColor: "white", padding: 5 }}>
-        <div>position : {pervPosition.join(" , ")}</div>
-        <div>accuracy : {pervAccuracy && pervAccuracy / 2}</div>
+        <div>position : {newPosition?.join(" , ")}</div>
+        <div>accuracy : {accuracy && accuracy / 2}</div>
         {/* <div>heading : {pervHeading && pervHeading.toFixed(2)}</div> */}
       </div>
     </>
