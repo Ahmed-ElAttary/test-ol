@@ -133,7 +133,7 @@ const CurrentPositionBtn = () => {
       .getFeatures()[0]
       .getGeometry()
       .setCoordinates(currentPosition);
-    map.getView().fit(vlRef.current.getSource().getExtent(), { maxZoom: 20 });
+    // map.getView().fit(vlRef.current.getSource().getExtent(), { maxZoom: 20 });
   };
 
   return (
